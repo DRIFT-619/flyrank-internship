@@ -96,4 +96,4 @@ curl -i -X POST http://localhost:3000/tasks -H "Content-Type: application/json" 
 ## Author
 
 Ayush Saxena <br>
-FlyRank Backend Engineering Intern
+FlyRank Backend AI Engineering Intern
