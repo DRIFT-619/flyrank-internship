@@ -1,47 +1,62 @@
-// REPOSITORY LAYER — the ONLY file that knows *where* tasks are stored.
-// Right now that's a list in memory. This is the single file we will rewrite
-// for Assignment 2 (SQLite) — the routes and the service will NEVER change,
-// because they only ever call findAll / findById / create / update / remove.
+const path = require('path');
+const Database = require('better-sqlite3');
 
-const SEED_TASKS = [
-  { id: 1, title: "Buy milk", done: false },
-  { id: 2, title: "Walk the dog", done: false },
-  { id: 3, title: "Finish assignment", done: true }
-];
+const dbPath = path.join(__dirname, '..', '..', 'tasks.db');
+const db = new Database(dbPath);
 
-let tasks = SEED_TASKS.map((task) => ({ ...task }));
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    done INTEGER NOT NULL DEFAULT 0
+  )
+`);
+
+const row = db.prepare('SELECT COUNT(*) AS count FROM tasks').get();
+if (row.count === 0) {
+  const insertSeed = db.prepare('INSERT INTO tasks (title, done) VALUES (?, ?)');
+  insertSeed.run('Buy milk', 0);
+  insertSeed.run('Walk the dog', 0);
+  insertSeed.run('Finish assignment', 1);
+}
+
+function toTask(row) {
+  return { id: row.id, title: row.title, done: Boolean(row.done) };
+}
 
 function findAll() {
-  return tasks.map((task) => ({ ...task }));
+  const rows = db.prepare('SELECT * FROM tasks').all();
+  return rows.map(toTask);
 }
 
 function findById(id) {
-  const task = tasks.find((t) => t.id === id);
-  return task ? { ...task } : null;
+  const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+  return row ? toTask(row) : null;
 }
 
 function create({ title, done }) {
-  const nextId = tasks.length > 0
-    ? Math.max(...tasks.map((t) => t.id)) + 1
-    : 1;
+  const result = db
+    .prepare('INSERT INTO tasks (title, done) VALUES (?, ?)')
+    .run(title, done ? 1 : 0);
 
-  const task = { id: nextId, title, done };
-  tasks.push(task);
-  return { ...task };
+  return findById(result.lastInsertRowid);
 }
 
 function update(id, changes) {
-  const task = tasks.find((t) => t.id === id);
-  if (!task) return null;
-  Object.assign(task, changes);
-  return { ...task };
+  const existing = findById(id);
+  if (!existing) return null;
+
+  const merged = { ...existing, ...changes };
+
+  db.prepare('UPDATE tasks SET title = ?, done = ? WHERE id = ?')
+    .run(merged.title, merged.done ? 1 : 0, id);
+
+  return findById(id);
 }
 
 function remove(id) {
-  const index = tasks.findIndex((t) => t.id === id);
-  if (index === -1) return false;
-  tasks.splice(index, 1);
-  return true;
+  const result = db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
+  return result.changes > 0;
 }
 
 module.exports = { findAll, findById, create, update, remove };

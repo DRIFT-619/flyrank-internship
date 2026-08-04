@@ -8,7 +8,7 @@ Supports full CRUD (Create, Read, Update, Delete) on an in-memory task list. No 
 ## Tech stack
 
 - Node.js + Express
-- In-memory storage (plain array, no database)
+- SQLite (via `better-sqlite3`) for persistent storage
 - Swagger UI (via `swagger-ui-express`) for interactive API docs
 
 ## Project Structure
@@ -17,13 +17,46 @@ Supports full CRUD (Create, Read, Update, Delete) on an in-memory task list. No 
 crud-api/
 │
 ├── src/
-│   └── server.js
+│   ├── app.js
+│   ├── server.js
+│   ├── errors.js
+│   │
+│   ├── routes/
+│   │   ├── meta.routes.js
+│   │   └── tasks.routes.js
+│   │
+│   ├── services/
+│   │   └── tasks.service.js
+│   │
+│   ├── repositories/
+│   │   └── tasks.repository.js
+│   │
+│   └── middleware/
+│       └── error-handler.js
 │
 ├── openapi.json
 ├── package.json
+├── package-lock.json
 ├── README.md
 └── .gitignore
 ```
+
+> `tasks.db` is created automatically on first run — not committed to the repo (see `.gitignore`).
+
+
+## Architecture
+
+This project follows a layered architecture:
+
+- **routes/** — thin HTTP handlers (read request, call service, shape response)
+- **services/** — business rules and validation
+- **repositories/** — data access (currently SQLite)
+- **errors.js** + **middleware/** — typed domain errors mapped to HTTP status codes
+
+Moving from an in-memory array to SQLite required changing only
+`repositories/tasks.repository.js` — the routes and services layer were
+untouched, since they only ever call `findAll` / `findById` / `create` /
+`update` / `remove` and never cared what was behind them.
 
 ## How to run it
 
@@ -80,6 +113,33 @@ http://localhost:3000
 | POST   | `/tasks`      | Create a new task                  |
 | PUT    | `/tasks/:id`  | Update a task's title and/or done  |
 | DELETE | `/tasks/:id`  | Delete a task                      |
+
+
+## Database
+
+This project stores tasks in a SQLite database (`tasks.db`) instead of an
+in-memory list — so your data survives server restarts.
+
+**Why SQLite:** it's a single file, needs no separate server or install,
+and is created automatically the first time the app runs — zero setup for
+anyone cloning this repo.
+
+`tasks.db` is created automatically in the project root on first run, with
+the `tasks` table and 3 seed tasks. It's git-ignored, so every clone starts
+with a fresh, clean database rather than inheriting whatever test data was
+on my machine.
+
+### Example query (run in DB Browser for SQLite)
+
+```sql
+SELECT * FROM tasks;
+```
+
+This returned all the tasks — confirming the same data and
+logic works identically whether it's driven through the API or run by
+hand against the raw database file.
+
+![DB Browser showing the tasks table](./db-browser-screenshot.png)
 
 ## Swagger UI
 
