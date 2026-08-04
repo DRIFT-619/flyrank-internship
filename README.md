@@ -4,9 +4,9 @@ This repository contains my weekly assignments, projects, and learning progress 
 
 ## Weekly Assignments
 
-| Week | Assignment | Status |
-|------|-------|--------|
-| Week 2 | [CRUD API using Node.js & Express](./crud-api) | In Progress |
+| Assignment | Status |
+|-------|--------|
+| [CRUD API using Node.js & Express](./crud-api) | Completed |
 
 ## Repository Structure
 
@@ -14,8 +14,6 @@ This repository contains my weekly assignments, projects, and learning progress 
 flyrank-internship
 │
 ├── crud-api
-│
-├── week-03
 │
 └── final-capstone
 ```
@@ -27,6 +25,7 @@ Each week's assignment is self-contained with its own README and package configu
 - JavaScript
 - Node.js
 - Express
+- SQLite (via `better-sqlite3`) for persistent storage
 - REST APIs
-- Swagger
+- Swagger UI (via `swagger-ui-express`) for interactive API docs
 - Git & GitHub
