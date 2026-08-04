@@ -7,6 +7,7 @@ This repository contains my weekly assignments, projects, and learning progress 
 | Assignment | Status |
 |-------|--------|
 | [CRUD API using Node.js & Express](./crud-api) | Completed |
+| [Connected the API to the SQLite Database](./crud-api) | Completed |
 
 ## Repository Structure
 
