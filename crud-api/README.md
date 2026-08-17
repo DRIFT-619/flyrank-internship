@@ -177,7 +177,7 @@ Run via `docker exec -it crud-api-db-1 psql -U postgres -d tasks -c "SELECT * FR
 returned all tasks, confirming the API and a direct database query see
 identical data.
 
-![Database showing the tasks table](./db-screenshot.png)
+![Database showing the tasks table](./db-terminal-screenshot.png)
 
 ## Swagger UI
 
