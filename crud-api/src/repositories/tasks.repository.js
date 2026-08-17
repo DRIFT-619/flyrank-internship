@@ -1,62 +1,67 @@
-const path = require('path');
-const Database = require('better-sqlite3');
+const { Pool } = require('pg');
 
-const dbPath = path.join(__dirname, '..', '..', 'tasks.db');
-const db = new Database(dbPath);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    done INTEGER NOT NULL DEFAULT 0
-  )
-`);
+async function initialize() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      done BOOLEAN NOT NULL DEFAULT FALSE
+    )
+  `);
 
-const row = db.prepare('SELECT COUNT(*) AS count FROM tasks').get();
-if (row.count === 0) {
-  const insertSeed = db.prepare('INSERT INTO tasks (title, done) VALUES (?, ?)');
-  insertSeed.run('Buy milk', 0);
-  insertSeed.run('Walk the dog', 0);
-  insertSeed.run('Finish assignment', 1);
+  const { rows } = await pool.query('SELECT COUNT(*) AS count FROM tasks');
+  const count = Number(rows[0].count);
+
+  if (count === 0) {
+    await pool.query(
+      `INSERT INTO tasks (title, done) VALUES
+        ('Buy milk', false),
+        ('Walk the dog', false),
+        ('Finish assignment', true)`
+    );
+  }
 }
 
-function toTask(row) {
-  return { id: row.id, title: row.title, done: Boolean(row.done) };
+const ready = initialize();
+
+async function findAll() {
+  const { rows } = await pool.query('SELECT * FROM tasks ORDER BY id');
+  return rows;
 }
 
-function findAll() {
-  const rows = db.prepare('SELECT * FROM tasks').all();
-  return rows.map(toTask);
+async function findById(id) {
+  const { rows } = await pool.query('SELECT * FROM tasks WHERE id = $1', [id]);
+  return rows[0] || null;
 }
 
-function findById(id) {
-  const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
-  return row ? toTask(row) : null;
+async function create({ title, done }) {
+  const { rows } = await pool.query(
+    'INSERT INTO tasks (title, done) VALUES ($1, $2) RETURNING *',
+    [title, done]
+  );
+  return rows[0];
 }
 
-function create({ title, done }) {
-  const result = db
-    .prepare('INSERT INTO tasks (title, done) VALUES (?, ?)')
-    .run(title, done ? 1 : 0);
-
-  return findById(result.lastInsertRowid);
-}
-
-function update(id, changes) {
-  const existing = findById(id);
+async function update(id, changes) {
+  const existing = await findById(id);
   if (!existing) return null;
 
   const merged = { ...existing, ...changes };
 
-  db.prepare('UPDATE tasks SET title = ?, done = ? WHERE id = ?')
-    .run(merged.title, merged.done ? 1 : 0, id);
-
-  return findById(id);
+  const { rows } = await pool.query(
+    'UPDATE tasks SET title = $1, done = $2 WHERE id = $3 RETURNING *',
+    [merged.title, merged.done, id]
+  );
+  return rows[0];
 }
 
-function remove(id) {
-  const result = db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
-  return result.changes > 0;
+async function remove(id) {
+  const result = await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
+  return result.rowCount > 0;
 }
 
-module.exports = { findAll, findById, create, update, remove };
+module.exports = { findAll, findById, create, update, remove, ready };
