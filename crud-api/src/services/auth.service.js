@@ -42,4 +42,8 @@ async function verifyToken(token) {
   return data.user;
 }
 
-module.exports = { signUp, logIn, verifyToken };
+async function logOut() {
+  await supabase.auth.signOut();
+}
+
+module.exports = { signUp, logIn, verifyToken, logOut };
