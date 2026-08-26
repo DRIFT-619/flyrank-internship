@@ -32,4 +32,14 @@ async function logIn(email, password) {
   };
 }
 
-module.exports = { signUp, logIn };
+async function verifyToken(token) {
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data.user) {
+    return null;
+  }
+
+  return data.user;
+}
+
+module.exports = { signUp, logIn, verifyToken };
