@@ -3,15 +3,108 @@
   "info": {
     "title": "Task API",
     "version": "1.0.0",
-    "description": "A simple CRUD API built using Node.js and Express."
+    "description": "A CRUD API with Supabase-backed authentication."
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
   },
   "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Create a new user account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "example": "test@example.com" },
+                  "password": { "type": "string", "example": "password123" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created" },
+          "400": { "description": "Missing or invalid email/password" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Log in and receive an access token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "example": "test@example.com" },
+                  "password": { "type": "string", "example": "password123" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Returns access_token and refresh_token" },
+          "400": { "description": "Missing fields or invalid credentials" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Log out the current session",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "204": { "description": "Logged out" },
+          "401": { "description": "Missing or invalid token" }
+        }
+      }
+    },
+    "/public/info": {
+      "get": {
+        "summary": "Public, open info — no auth required",
+        "responses": {
+          "200": { "description": "Public message" }
+        }
+      }
+    },
+    "/protected/profile": {
+      "get": {
+        "summary": "Get the current user's profile",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "User profile" },
+          "401": { "description": "Missing or invalid token" }
+        }
+      }
+    },
+    "/protected/dashboard": {
+      "get": {
+        "summary": "Example second protected route, using the same auth guard",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Dashboard welcome message" },
+          "401": { "description": "Missing or invalid token" }
+        }
+      }
+    },
     "/tasks": {
       "get": {
         "summary": "List all tasks",
-        "responses": {
-          "200": { "description": "Array of all tasks" }
-        }
+        "responses": { "200": { "description": "Array of all tasks" } }
       },
       "post": {
         "summary": "Create a new task",
