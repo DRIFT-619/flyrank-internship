@@ -34,13 +34,10 @@ async function discoverBookUrls() {
 
   while (currentUrl && pageNumber <= 3) {
     const cacheKey = `catalogue-page-${pageNumber}`;
-    const wasCached = require('fs').existsSync(
-      require('path').join(__dirname, '..', 'cache', `${cacheKey}.html`)
-    );
 
-    const html = await fetchPage(currentUrl, cacheKey);
+    const { html, wasCached: cameFromCache } = await fetchPage(currentUrl, cacheKey);
 
-    if (!wasCached) {
+    if (!cameFromCache) {
       await sleep(DELAY_MS);
     }
 

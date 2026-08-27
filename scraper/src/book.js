@@ -41,8 +41,9 @@ function parseBookPage(html, bookUrl, sourcePage) {
 
 async function fetchBookRecord(bookUrl, sourcePage) {
   const cacheKey = `book-${slugFromUrl(bookUrl)}`;
-  const html = await fetchPage(bookUrl, cacheKey);
-  return parseBookPage(html, bookUrl, sourcePage);
+  const { html, wasCached } = await fetchPage(bookUrl, cacheKey);
+  const record = parseBookPage(html, bookUrl, sourcePage);
+  return { ...record, wasCached };
 }
 
 module.exports = { fetchBookRecord, parseBookPage };
