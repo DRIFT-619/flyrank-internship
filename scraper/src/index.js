@@ -1,8 +1,8 @@
-const { fetchPage } = require('./fetcher');
+const { discoverBookUrls } = require('./catalogue');
 
 async function main() {
-  const url = 'https://books.toscrape.com/catalogue/page-1.html';
-  await fetchPage(url, 'catalogue-page-1');
+  const urls = await discoverBookUrls();
+  console.log('First 3 URLs:', urls.slice(0, 3));
 }
 
 main();
