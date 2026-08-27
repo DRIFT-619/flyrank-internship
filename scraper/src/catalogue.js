@@ -28,7 +28,7 @@ function parseCataloguePage(html, pageUrl) {
 }
 
 async function discoverBookUrls() {
-  const allBookLinks = [];
+  const allBooks = [];
   let currentUrl = BASE_CATALOGUE_URL;
   let pageNumber = 1;
 
@@ -45,19 +45,27 @@ async function discoverBookUrls() {
     }
 
     const { bookLinks, nextPageUrl } = parseCataloguePage(html, currentUrl);
-    allBookLinks.push(...bookLinks);
+
+    for (const url of bookLinks) {
+      allBooks.push({ url, sourcePage: currentUrl });
+    }
 
     currentUrl = nextPageUrl;
     pageNumber += 1;
   }
 
-  const uniqueUrls = [...new Set(allBookLinks)];
+  const seen = new Set();
+  const uniqueBooks = allBooks.filter((book) => {
+    if (seen.has(book.url)) return false;
+    seen.add(book.url);
+    return true;
+  });
 
   console.log(`catalogue_pages=${pageNumber - 1}`);
-  console.log(`discovered=${allBookLinks.length}`);
-  console.log(`unique_urls=${uniqueUrls.length}`);
+  console.log(`discovered=${allBooks.length}`);
+  console.log(`unique_urls=${uniqueBooks.length}`);
 
-  return uniqueUrls;
+  return uniqueBooks;
 }
 
 module.exports = { discoverBookUrls, parseCataloguePage };
