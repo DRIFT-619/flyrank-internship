@@ -10,6 +10,7 @@ This repository contains my weekly assignments, projects, and learning progress 
 | [Connected the API to a SQLite database](./crud-api) | SQLite | Completed |
 | [Containerized the stack with Postgres + Docker](./crud-api) | PostgreSQL (Docker) | Completed |
 | [Auth with Supabase](./crud-api) | Supabase Auth (JWT) | Completed |
+| [The polite scraper (Books to Scrape)](./scraper) | Web scraping pipeline | Completed |
 
 All three assignments live in the same `crud-api` folder — same API, same
 endpoints, three different storage backends swapped in underneath it.
@@ -22,7 +23,9 @@ flyrank-internship
 │
 ├── crud-api
 │
-└── final-capstone
+├── scraper
+│
+└── README.md
 ```
 Each week's assignment is self-contained with its own README and package configuration.
 
